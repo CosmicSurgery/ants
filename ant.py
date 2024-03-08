@@ -1,57 +1,71 @@
 import random
+import math
+import pygame
+import numpy as np
 
 class Ant:
     def __init__(self, anthill, unique_id):
-        self.anthill = anthill  # Reference to the Anthill object
-        self.unique_id = unique_id  # Unique identifier for each ant
-        self.position = anthill.position  # Initial position is the anthill
-        self.direction = random.randint(0, 360)  # Initial random direction
+        self.anthill = anthill
+        self.unique_id = unique_id
+        self.position = anthill.position
+        self.direction = random.randint(0, 360)
+        self.radius = 5
+        self.has_food = False
+        self.vision_radius = 50
+        self.vision_angle = 120
 
-    def move(self):
-        """
-        Move the ant in its current direction.
-        """
-        # Update the ant's position based on its direction
+    def move(self, food_sources, food_pheromone_matrix, home_pheromone_matrix):
+        # Random wandering
+        self.direction += random.randint(-30, 30)
+        self.direction %= 360
+
+        dx = math.cos(math.radians(self.direction)) * 2
+        dy = math.sin(math.radians(self.direction)) * 2
+        new_position = (self.position[0] + dx, self.position[1] + dy)
+
+        # Check for food
+        for food in food_sources:
+            if np.linalg.norm(np.array(new_position) - np.array(food.position)) <= food.radius + self.radius:
+                self.find_food(food_pheromone_matrix)
+                break
+
+        # Follow pheromone trails
+        pheromone_gradients = self.sense_pheromone(food_pheromone_matrix, home_pheromone_matrix)
+        if pheromone_gradients:
+            resultant_gradient = np.sum(pheromone_gradients, axis=0)
+            self.direction = math.degrees(math.atan2(resultant_gradient[1], resultant_gradient[0]))
+
+        # Update position
+        self.position = new_position
+
+    def deposit_pheromone(self, pheromone_matrix, pheromone_type, intensity=1.0):
+        pheromone_matrix[int(self.position[1]), int(self.position[0])] += intensity
+
+    def sense_pheromone(self, food_pheromone_matrix, home_pheromone_matrix):
+        pheromone_gradients = []
+        for angle in range(-self.vision_angle // 2, self.vision_angle // 2 + 1):
+            dx = math.cos(math.radians(self.direction + angle)) * self.vision_radius
+            dy = math.sin(math.radians(self.direction + angle)) * self.vision_radius
+            vision_position = (int(self.position[0] + dx), int(self.position[1] + dy))
+
+            food_pheromone_intensity = food_pheromone_matrix[vision_position[1], vision_position[0]]
+            home_pheromone_intensity = home_pheromone_matrix[vision_position[1], vision_position[0]]
+
+            if food_pheromone_intensity > 0 or home_pheromone_intensity > 0:
+                pheromone_gradient = np.array([dx, dy]) * (food_pheromone_intensity + home_pheromone_intensity)
+                pheromone_gradients.append(pheromone_gradient)
+
+        return pheromone_gradients
+
+    def find_food(self, food_pheromone_matrix):
+        self.has_food = True
+        self.deposit_pheromone(food_pheromone_matrix, "food", intensity=100.0)
+
+    def return_to_anthill(self, home_pheromone_matrix):
         pass
 
-    def deposit_pheromone(self, pheromone_type):
-        """
-        Deposit a pheromone of a specific type at the ant's current position.
-
-        Args:
-            pheromone_type (str): The type of pheromone to deposit (e.g., 'food', 'home').
-        """
-        pass
-
-    def sense_pheromone(self, pheromone_type):
-        """
-        Sense the strength of a specific pheromone type at the ant's current position.
-
-        Args:
-            pheromone_type (str): The type of pheromone to sense.
-
-        Returns:
-            float: The strength of the pheromone at the ant's current position.
-        """
-        pass
-
-    def find_food(self):
-        """
-        Check if the ant has found food at its current position.
-
-        Returns:
-            bool: True if food is found, False otherwise.
-        """
-        pass
-
-    def return_to_anthill(self):
-        """
-        Make the ant start returning to the anthill by following the home pheromone trail.
-        """
-        pass
+    def draw(self, screen, color):
+        pygame.draw.circle(screen, color, self.position, self.radius)
 
     def __str__(self):
-        """
-        Return a string representation of the ant.
-        """
         return f"Ant {self.unique_id} at ({self.position})"

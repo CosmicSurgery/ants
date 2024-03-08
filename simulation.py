@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 from ant import Ant
 from anthill import Anthill
 from food import Food
@@ -15,14 +16,22 @@ pygame.display.set_caption("Ant Simulation")
 
 # Define colors
 BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+DARK_GRAY = (40, 40, 40)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 # Create objects
 anthill = Anthill(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
-ants = [Ant(anthill, i) for i in range(100)]  # Create 100 ants
-food_sources = [Food(100, 100), Food(600, 400)]  # Create two food sources
+ants = [Ant(anthill, i) for i in range(20)]
+food_sources = [Food(100, 100), Food(600, 400)]
+
+# Create pheromone matrices
+# food_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
+food_pheromone_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
+home_pheromone_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
+
+# for food in food_sources:
+#     food_matrix[food.position[0],food.position[1]] = 1
 
 # Game loop
 running = True
@@ -34,12 +43,12 @@ while running:
             running = False
 
     # Clear the screen
-    screen.fill(WHITE)
+    screen.fill(DARK_GRAY)
 
     # Draw objects
     anthill.draw(screen, RED)
     for ant in ants:
-        ant.move()
+        ant.move(food_sources, food_pheromone_matrix, home_pheromone_matrix)
         ant.draw(screen, BLACK)
     for food in food_sources:
         food.draw(screen, GREEN)

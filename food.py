@@ -7,5 +7,5 @@ class Food:
         self.radius = 10
         self.color = (random.randint(50, 255), random.randint(50, 255), random.randint(50, 255))
 
-    def draw(self, screen):
-        pygame.draw.circle(screen, self.color, self.position, self.radius)
+    def draw(self, screen, color):
+        pygame.draw.circle(screen, color, self.position, self.radius)
