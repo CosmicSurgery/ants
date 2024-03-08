@@ -16,9 +16,9 @@ pygame.display.set_caption("Ant Simulation")
 
 # Define colors
 BLACK = (0, 0, 0)
-DARK_GRAY = (40, 40, 40)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
+DARK_GRAY = (40, 40, 40, 128)
+RED = (255, 0, 0, 0.5)
+GREEN = (0, 255, 0, 12)
 
 # Create objects
 anthill = Anthill(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
@@ -29,6 +29,9 @@ food_sources = [Food(100, 100), Food(600, 400)]
 # food_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
 food_pheromone_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
 home_pheromone_matrix = np.zeros((WINDOW_WIDTH, WINDOW_HEIGHT))
+
+food_pheromones = []
+home_pheromones = [] 
 
 # for food in food_sources:
 #     food_matrix[food.position[0],food.position[1]] = 1
@@ -48,7 +51,7 @@ while running:
     # Draw objects
     anthill.draw(screen, RED)
     for ant in ants:
-        ant.move(food_sources, food_pheromone_matrix, home_pheromone_matrix)
+        ant.move(food_sources, food_pheromones, home_pheromones)
         ant.draw(screen, BLACK)
     for food in food_sources:
         food.draw(screen, GREEN)
